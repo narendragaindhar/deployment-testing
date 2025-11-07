@@ -74,6 +74,8 @@ jobs:
           while read file; do
             if [ -f "$file" ]; then
               echo "Syncing $file"
-              rsync -az --relative "$file" tmp_changed_files
+              rsync -az --relative "$file" /home/narendra/tmp_changed_files/
             fi
-          done < changed_files.txt
+          done < /home/narendra/changed_files.txt
+          echo "Sync completed."
+
