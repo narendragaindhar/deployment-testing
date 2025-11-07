@@ -50,13 +50,14 @@ jobs:
         id: changed
         run: |
           echo "Getting list of changed files..."
+          cd "$GITHUB_WORKSPACE"
           git fetch origin main
           CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
-          echo "$CHANGED_FILES" > changed_files.txt
+          echo "$CHANGED_FILES" > /home/narendra/changed_files.txt
           echo "Changed files:"
-          cat changed_files.txt
+          cat /home/narendra/changed_files.txt
           echo "changed_files<<EOF" >> $GITHUB_OUTPUT
-          cat changed_files.txt >> $GITHUB_OUTPUT
+          cat /home/narendra/changed_files.txt >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
       # - name: Backup current version
