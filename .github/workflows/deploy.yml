@@ -1,18 +1,77 @@
-name: Deploy Main Branch to Root
+# name: Deploy Main Branch to Root
+
+# on:
+#   push:
+#     branches:
+#       - main
+
+# jobs:
+#   deploy:
+#     runs-on: self-hosted   # this executes on VM runner
+#     steps:
+#       - name: Checkout main branch
+#         uses: actions/checkout@v4
+
+#       - name: Copy repo to root directory
+#         run: |
+#           echo "Copying repository to / ..."
+#           cp -a /home/runner/actions-runner/_work/idrive-express-test/. /home/runner/
+
+name: Deploy code to Gateway VM (incremental)
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Select Environment'
+        type: choice
+        required: true
+        default: 'staging'
+        options:
+          - staging
 
 jobs:
   deploy:
-    runs-on: self-hosted   # this executes on VM runner
+    runs-on: self-hosted
+
     steps:
       - name: Checkout main branch
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # Required for git diff to work
 
-      - name: Copy repo to root directory
+      - name: Copy repo to /home/runner/
         run: |
-          echo "Copying repository to / ..."
-          cp -a /home/runner/actions-runner/_work/idrive-express-test/. /home/runner/
+          echo "Copying repository to /home/narendra/"
+          sudo cp -r "$GITHUB_WORKSPACE" /home/narendra/
+          ls -la /home/narendra/
+
+      - name: Find changed files
+        id: changed
+        run: |
+          echo "Getting list of changed files..."
+          git fetch origin main
+          CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
+          echo "$CHANGED_FILES" > changed_files.txt
+          echo "Changed files:"
+          cat changed_files.txt
+          echo "changed_files<<EOF" >> $GITHUB_OUTPUT
+          cat changed_files.txt >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      # - name: Backup current version
+      #   run: |
+      #     echo "Running backup script..."
+      #     chmod +x /home/narendra/backup-lbs.sh
+      #     sudo sh /home/narendra/backup-lbs.sh
+
+      # - name: Rsync only changed files to Load Balancers
+      #   if: ${{ success() }}
+      #   run: |
+      #     echo "Syncing only changed files..."
+      #     while read file; do
+      #       if [ -f "$file" ]; then
+      #         echo "Syncing $file"
+      #         rsync -az --relative "$file" user@lb-server:/var/www/app/
+      #       fi
+      #     done < changed_files.txt
