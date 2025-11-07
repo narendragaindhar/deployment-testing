@@ -66,13 +66,14 @@ jobs:
       #     chmod +x /home/narendra/backup-lbs.sh
       #     sudo sh /home/narendra/backup-lbs.sh
 
-      # - name: Rsync only changed files to Load Balancers
-      #   if: ${{ success() }}
-      #   run: |
-      #     echo "Syncing only changed files..."
-      #     while read file; do
-      #       if [ -f "$file" ]; then
-      #         echo "Syncing $file"
-      #         rsync -az --relative "$file" user@lb-server:/var/www/app/
-      #       fi
-      #     done < changed_files.txt
+      - name: Rsync only changed files to Load Balancers
+        if: ${{ success() }}
+        run: |
+          echo "Syncing only changed files..."
+          cd /home/narendra/deployment-testing
+          while read file; do
+            if [ -f "$file" ]; then
+              echo "Syncing $file"
+              rsync -az --relative "$file" tmp_changed_files
+            fi
+          done < changed_files.txt
